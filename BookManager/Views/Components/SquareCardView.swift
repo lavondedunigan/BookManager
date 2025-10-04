@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SquareCardView : View {
-    @Binding var book: Book
+    let book: PersistentBook
     
     var body: some View {
 //        VStack{
@@ -54,7 +54,9 @@ struct SquareCardView : View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            Image(book.image)
+            Image(
+                uiImage: (book.imageData != nil ? UIImage(data: book.imageData!)!
+                          :UIImage(resource: .defaultBook)))
                 .resizable()
                 .scaledToFill().opacity(0.9)
         )

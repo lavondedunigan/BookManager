@@ -6,18 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddEditView: View {
     
-    @Binding var book: Book
-    @State private var workingBook: Book
-    @Environment(\.dismiss) var dismiss
-    @State private var navigationTitle: String
+    @StateObject private var viewModel: AddEditViewModel
     
-    init(book: Binding<Book>) {
-        self._book = book
-        _workingBook = .init(initialValue: book.wrappedValue) //creating a copy to edit
-        self._navigationTitle = State(initialValue: book.wrappedValue.title.isEmpty ? "Add a new book" : "Edit book")
+    @Environment(\.dismiss) var dismiss
+    
+    init(book: PersistentBook? = nil, modelContext: ModelContext) {
+        _viewModel = StateObject(
+            wrappedValue: AddEditViewModel(
+                book: book,
+                modelContext: modelContext)
+        )
+        
+        
     }
     
     var body: some View {
@@ -30,42 +34,51 @@ struct AddEditView: View {
                     endPoint: .bottom
                 )
                 Form {
+                    Section(header: Text("BookCover")){
+                        ImageField(image: $viewModel.cover)
+                    }
                     Section(header: Text("Book details")) {
-                        TextField("Title of the book", text: $workingBook.title)
-                        TextField("Author", text: $workingBook.author)
-                        Picker("Genre", selection: $workingBook.genre){
+                        TextField("Title of the book", text: $viewModel.title)
+                        TextField("Author", text: $viewModel.author)
+                        Picker("Genre", selection: $viewModel.genre){
                             ForEach(Genre.allCases, id: \.self) { genre in
                                 Text(genre.rawValue).tag(genre)
                             }
                         }
-                        TextEditor(text: $workingBook.description)
+                        TextEditor(text: $viewModel.summary)
                             .frame(height: 150)
                     }
                     Section(header: Text("My review")) {
-                        StarRatingView(rating: $workingBook.rating)
-                        Picker("Reading status", selection: $workingBook.status){
+                        StarRatingView(rating: $viewModel.rating)
+                        Picker("Reading status", selection: $viewModel.status){
                             ForEach(ReadingStatus.allCases, id: \.self) { status in
                                 Text(status.rawValue).tag(status)
                             }
                         }
-                        TextEditor(text: $workingBook.review)
+                        TextEditor(text: $viewModel.review)
                             .frame(height: 150)
                     }
                 }
-                .navigationTitle(navigationTitle)
-                .toolbar{
-                    ToolbarItem(placement: .confirmationAction){
-                        Button("Save") {
-                            //save the value
-                            book = workingBook
-                            dismiss()
-                        }
-                        .disabled(workingBook.title.isEmpty)
+            }
+            //acutally save the value
+            .navigationTitle(viewModel.navigationTitle)
+            .toolbar{
+                ToolbarItem(placement: .confirmationAction){
+                    Button("Save") {
+                        viewModel.save()
+                        dismiss()
                     }
-                    
+                    .disabled(viewModel.isSaveButtonDisabled)
                 }
+                
             }
         }
     }
+    
+    
+    
+    
+    
+    
+    
 }
-

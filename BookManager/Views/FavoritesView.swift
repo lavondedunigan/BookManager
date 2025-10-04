@@ -6,28 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct FavoritesView: View {
+    @AppStorage(SETTINGS_GRID_COLUMNS_KEY) private var gridColumns: Int = SETTINGS_GRID_COLUMNS_DEFAULT_VALUE
     
-    @Binding var books: [Book]
-    let gridLayout = [GridItem(.flexible()), GridItem(.flexible())]
+    @Query var books:[PersistentBook]
     @State var isFilteringSheetPresented: Bool = false
     @State var selectedGenre: Genre?
-    @State var selectedReading: ReadingStatus?
+    @State var selectedStatus: ReadingStatus?
     
+    private var gridLayout: [GridItem] {
+        Array(repeating: GridItem(), count: gridColumns)
+    }
     //computed property
-    private var favoriteBooks: [Binding<Book>] {
-        $books.filter {
-            $0.wrappedValue.isFavorite
-            && ( // filter by genre if filter is set
-                selectedGenre == nil
-                || $0.wrappedValue.genre == selectedGenre
-            )
-            && ( // filter by status if filter is set
-                selectedReading == nil
-                || $0.wrappedValue.status == selectedReading
-            )
-        }
+    private var favoriteBooks: [PersistentBook] { // why this is not set in init
+        filterFavoriteBooks(books: books, selectedGenre: selectedGenre, selectedStatus: selectedStatus)
     }
     
     var body: some View {
@@ -36,13 +30,13 @@ struct FavoritesView: View {
                 if(selectedGenre != nil){
                     Text("Current genre filter: \(selectedGenre!.rawValue)")
                 }
-                if(selectedReading != nil) {
-                    Text("Current filter: \(selectedReading!.rawValue)")
+                if(selectedStatus != nil) {
+                    Text("Current filter \(selectedStatus!.rawValue)")
                 }
                 LazyVGrid(columns: gridLayout){
-                    ForEach(favoriteBooks, id: \.self.id) { bindingToBook in
-                        NavigationLink(destination: BookDetailView(book: bindingToBook)){
-                            SquareCardView(book: bindingToBook)
+                    ForEach(favoriteBooks, id: \.self.id) { book in
+                        NavigationLink(destination: BookDetailView(book: book)){
+                            SquareCardView(book: book)
                                 .padding()
                         }
                     }
@@ -61,10 +55,23 @@ struct FavoritesView: View {
             .sheet(isPresented: $isFilteringSheetPresented){
                 FilterView(
                     selectedGenre: $selectedGenre,
-                    selectedReading: $selectedReading
+                    selectedReading: $selectedStatus
                 )
             }
             
         }
+    }
+    func filterFavoriteBooks(books: [PersistentBook], selectedGenre: Genre?, selectedStatus: ReadingStatus?, isNegative: Bool?=false) -> [PersistentBook] {
+        return books.filter {
+            //$0 = one book in books
+            (isNegative! ? !$0.isFavorite : $0.isFavorite)
+            && (
+                selectedGenre == nil || $0.genre == selectedGenre!
+            )
+            && (
+                selectedStatus == nil || $0.status == selectedStatus!
+            )
+        }
+        
     }
 }

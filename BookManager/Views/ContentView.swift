@@ -9,11 +9,13 @@
 // deprecated
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @State var books = getBooks()
+    @Query var books:[PersistentBook]
     
     @AppStorage(SETTINGS_THEME_KEY) var theme: Theme = .light
+    @AppStorage(SETTINGS_ACCENT_COLOR_KEY) private var accentTintColor: Color = SETTINGS_ACCENT_COLOR_DEFAULT_VALUE
     
     var colorScheme: ColorScheme? {
         switch(theme) {
@@ -25,14 +27,14 @@ struct ContentView: View {
             return nil
         }
     }
-    
+  
     var body: some View {
         TabView {
-            BookListView(books: $books)
+            BookListView()
                 .tabItem {
                     Label("Books", systemImage: "books.vertical.fill")
                 }
-            FavoritesView(books: $books)
+            FavoritesView()
                 .tabItem {
                     Label("Favorites", systemImage: "heart.fill")
                 }
@@ -40,7 +42,12 @@ struct ContentView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
+            ImageViewer()
+                .tabItem {
+                    Label("Images", systemImage: "photo")
         }
+        }
+       // .tint(accentTintColor)
         .preferredColorScheme(colorScheme)
     }
 }

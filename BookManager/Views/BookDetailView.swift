@@ -8,8 +8,17 @@ import SwiftUI
 
 struct BookDetailView: View {
     
-    @Binding var book: Book
+    var book: PersistentBook
+    
     @State private var showEditSheet: Bool = false
+    @State private var isFavorite: Bool = false
+    
+    @Environment(\.modelContext) private var modelContext
+    
+    init(book: PersistentBook) {
+        self.book = book
+        isFavorite = book.isFavorite  //why this is not a computed property
+    }
     
     var body: some View {
         ZStack {
@@ -24,7 +33,8 @@ struct BookDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack{
-                        Image(book.image)
+                        Image(
+                            uiImage: (book.imageData != nil ? UIImage(data:book.imageData!) :UIImage(resource: .defaultBook))!)
                             .resizable()
                             .scaledToFit()
                             .frame(maxWidth: 100, maxHeight: 150)
@@ -47,10 +57,14 @@ struct BookDetailView: View {
                             CustomCapsule(text: book.status.rawValue, color: .secondary)
                         }
                         Spacer()
-                        FavoriteToggle(isFavorite: $book.isFavorite)
+                        FavoriteToggle(isFavorite: $isFavorite)
+                            .onChange(of: isFavorite){
+                                book.isFavorite = isFavorite
+                                try? modelContext.save()
+                            }
                     }
-                    if (book.description != "") {
-                        Text(book.description)
+                    if (book.summary != "") {
+                        Text(book.summary)
                     }
                     
                     if(book.rating == 0){
@@ -69,7 +83,7 @@ struct BookDetailView: View {
             showEditSheet.toggle()
         }))
         .sheet(isPresented: $showEditSheet, content: {
-            AddEditView(book: $book)
+            AddEditView(book: book, modelContext: modelContext)
         })
     }
 }

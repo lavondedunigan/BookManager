@@ -9,8 +9,10 @@ import SwiftUI
 
 struct SettingsView: View {
     
-//    @State var currentThemeState: Theme = .light
-    @AppStorage(SETTINGS_THEME_KEY) var currentTheme: Theme = .light
+    @AppStorage(SETTINGS_THEME_KEY) private var currentTheme: Theme = .light
+    @AppStorage(SETTINGS_GRID_COLUMNS_KEY) private var gridColumns: Int =
+        SETTINGS_GRID_COLUMNS_DEFAULT_VALUE
+    @AppStorage(SETTINGS_ACCENT_COLOR_KEY) private var accentTintColor: Color = SETTINGS_ACCENT_COLOR_DEFAULT_VALUE
     
     var body: some View {
         NavigationView {
@@ -21,6 +23,12 @@ struct SettingsView: View {
                             Text(theme.rawValue.capitalized).tag(theme)
                         }
                     }
+//                    ColorPicker("Accent Color", selection:
+//                         $accentTintColor)
+                }
+                Section(header: Text("Grid")){
+                    Stepper("Columns: \(gridColumns)", value:
+                        $gridColumns, in:1...4)
                 }
             }
         }

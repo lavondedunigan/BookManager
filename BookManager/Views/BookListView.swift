@@ -6,17 +6,19 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BookListView: View {
-    @Binding var books: [Book]
+    
+    @Query var books:[PersistentBook]
     @State var showAddView: Bool = false
     @State var newBook = Book(title:"")
-    
+    @Environment(\.modelContext) private var modelContext;
     
     var body: some View {
         NavigationStack {
-            List($books, id: \.self.id) { $bookItem in
-                NavigationLink(destination: BookDetailView(book: $bookItem)){
+            List(books, id: \.self.id) { bookItem in
+                NavigationLink(destination: BookDetailView(book: bookItem)){
                     BookListItemView(book: bookItem)
                 }
                 //                .border(Color.red)
@@ -30,13 +32,13 @@ struct BookListView: View {
                 isPresented: $showAddView,
             ) {//onDimiss: This is run when "dismiss()" is executed in the content view
                 //only append book if title is not empty
-                if !newBook.title.isEmpty {
-                    books.append(newBook)
-                }
+//                if !newBook.title.isEmpty {
+//                    books.append(newBook)
+               // }
                 //Reset newBook state to a completely new book
-                newBook = Book(title: "")
+//                newBook = Book(title: "")
             } content: {
-                AddEditView(book: $newBook)
+                AddEditView(modelContext: modelContext)
             }
         }
     }

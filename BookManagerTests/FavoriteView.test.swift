@@ -15,9 +15,9 @@ struct FavoriteViewTests {
     func testFilterFunctionWorksCorrectly() {
         // Arrange
         let books = [
-            PersistentBook(title:"Book1", isFavorite:true),
-            PersistentBook(title:"Book2"),
-            PersistentBook(title:"Book3"),
+            Book(title:"Book1", isFavorite:true),
+            Book(title:"Book2"),
+            Book(title:"Book3"),
         ]
         let favoriteBooks = filterFavoriteBooks(books: books, selectedGenre: nil, selectedStatus: nil)
         

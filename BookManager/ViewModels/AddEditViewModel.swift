@@ -9,9 +9,9 @@ import SwiftUI
 import SwiftData
 
 @MainActor
-class AddEditViewModel: ObservedObject {
+class AddEditViewModel: ObservableObject {
     
-    private var bookToEdit: Book?
+    private var bookToEdit: PersistentBook?
     private let modelContext: ModelContext
     
     @Published var title: String = ""
@@ -19,6 +19,7 @@ class AddEditViewModel: ObservedObject {
     @Published var description: String = ""
     @Published var rating: Int = 0
     @Published var review: String = ""
+    @Published var summary: String = ""
     @Published var status: ReadingStatus = .unknown
     @Published var genre: Genre = .unknown
     @Published var isFavorite: Bool = false
@@ -30,7 +31,15 @@ class AddEditViewModel: ObservedObject {
     }
     
     var isSaveButtonDisabled: Bool {
-        title.isEmpty
+        title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        || (title == bookToEdit?.title
+        && author == bookToEdit?.title
+        && summary == bookToEdit?.summary
+        && rating == bookToEdit?.rating
+        && review == bookToEdit?.review
+        && status == bookToEdit?.status
+        && genre == bookToEdit?.genre
+        && isFavorite == bookToEdit?.isFavorite)
     }
     init(book: PersistentBook? = nil,modelContext: ModelContext) {
         self.bookToEdit = book
@@ -46,7 +55,7 @@ class AddEditViewModel: ObservedObject {
             self.status = book.status
             self.genre = book.genre
             self.isFavorite = book.isFavorite
-            if let coverData = book.imageDate {
+            if let coverData = book.imageData {
                 self.cover = UIImage(data: coverData)
                 
             }
@@ -56,7 +65,7 @@ class AddEditViewModel: ObservedObject {
     }
     func save() {
         let isANewBook = bookToEdit == nil
-        let bookToSave = bookToEdit ?? PeersistentBook(title:"")
+        var bookToSave = bookToEdit ?? PersistentBook(title:"")
         bookToSave.title = title
         bookToSave.author = author
         bookToSave.genre = genre
@@ -69,7 +78,7 @@ class AddEditViewModel: ObservedObject {
         }
         
         if isANewBook {
-            modelContext.insert(bookToSave)
+          modelContext.insert(bookToSave)
         }
         
         do {
